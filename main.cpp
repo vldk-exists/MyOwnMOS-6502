@@ -147,7 +147,50 @@ class CPU {
                     AND(memory[zeroPagedIndexedAddress()]);
                     break;
                 case 0x26:
-                    ROL(memory[zeroPagedAddress()]);
+                    ROL(zeroPagedAddress());
+                    break;
+                case 0x28:
+                    PLP();
+                    break;
+                case 0x29:
+                    AND(memory[pc+1]);
+                    break;
+                case 0x2a:
+                    ROL();
+                    break;
+                case 0x2c:
+                    BIT(memory[absoluteAddress()]);
+                    break;
+                case 0x2d:
+                    AND(memory[absoluteAddress()]);
+                    break;
+                case 0x2e:
+                    ROL(absoluteAddress());
+                    break;
+
+                case 0x31:
+                    BMI(memory[pc+1]);
+                    break;
+                case 0x32:
+                    AND(memory[indirectIndexedAddress()]);
+                    break;
+                case 0x35:
+                    AND(memory[zeroPagedIndexedAddress()]);
+                    break;
+                case 0x36:
+                    ROL(zeroPagedAddress());
+                    break;
+                case 0x38:
+                    SEC();
+                    break;
+                case 0x39:
+                    AND(memory[absoluteIndexedY()]);
+                    break;
+                case 0x3d:
+                    AND(memory[absoluteIndexedX()]);
+                    break;
+                case 0x3e:
+                    ROL(memory[absoluteAddress()]);
                     break;
             }
         }
@@ -336,7 +379,52 @@ class CPU {
         }
 
         void ROL(uint8_t operand) {
-            // ...
+            pc += 2;
+
+            if ((memory[operand] & 0x80) > 0) setFlag(CARRY_FLAG);
+            else unsetFlag(CARRY_FLAG);
+
+            uint8_t temp = (0x80 & memory[operand]) >> 7;
+
+            memory[operand] = (memory[operand] << 1) | temp;
+
+            if ((memory[operand] & 0x80) > 0) setFlag(NEGATIVE_FLAG);
+            else unsetFlag(NEGATIVE_FLAG);
+
+            if (memory[operand] == 0) setFlag(ZERO_FLAG);
+            else unsetFlag(ZERO_FLAG);
+        }
+
+        void ROL() {
+            pc += 1;
+
+            if ((accumulator & 0x80) > 0) setFlag(CARRY_FLAG);
+            else unsetFlag(CARRY_FLAG);
+
+            uint8_t temp = (0x80 & accumulator) >> 7;
+
+            accumulator = (accumulator << 1) | temp;
+
+            if ((accumulator & 0x80) > 0) setFlag(NEGATIVE_FLAG);
+            else unsetFlag(NEGATIVE_FLAG);
+
+            if (accumulator == 0) setFlag(ZERO_FLAG);
+            else unsetFlag(ZERO_FLAG);
+        }
+
+        void PLP() {
+            pc += 1;
+            psr = pullStack();
+        }
+        
+        void BMI(uint8_t operand) {
+            if (checkFlag(NEGATIVE_FLAG)) pc += (int8_t)operand;
+            else pc += 2;
+        }
+
+        void SEC() {
+            pc += 1;
+            setFlag(CARRY_FLAG);
         }
 };
 
