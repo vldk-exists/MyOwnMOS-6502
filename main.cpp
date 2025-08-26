@@ -535,10 +535,255 @@ class CPU {
                     pc += 3;
                     STA(absoluteIndexedX());
                     break;
+                
+                case 0xa0:
+                    pc += 2;
+                    LDY(immediateValue());
+                    break;
+                case 0xa1:
+                    pc += 2;
+                    LDA(memory[indexedIndirectAddress()]);
+                    break;
+                case 0xa2:
+                    pc += 2;
+                    LDX(immediateValue());
+                    break;
+                case 0xa4:
+                    pc += 2;
+                    LDY(memory[zeroPagedAddress()]);
+                    break;
+                case 0xa5:
+                    pc += 2;
+                    LDA(memory[zeroPagedAddress()]);
+                    break;
+                case 0xa6:
+                    pc += 2;
+                    LDX(memory[zeroPagedAddress()]);
+                    break;
+                case 0xa8:
+                    pc += 1;
+                    TAY();
+                    break;
+                case 0xa9:
+                    pc += 2;
+                    LDA(immediateValue());
+                    break;
+                case 0xaa:
+                    pc += 1;
+                    TAX();
+                    break;
+                case 0xac:
+                    pc += 3;
+                    LDY(memory[absoluteAddress()]);
+                    break;
+                case 0xad:
+                    pc += 3;
+                    LDA(memory[absoluteAddress()]);
+                    break;
+                case 0xae:
+                    pc += 3;
+                    LDX(memory[absoluteAddress()]);
+                    break;
 
-                default:
+                case 0xb0:
+                    pc += 2;
+                    BCS(relativeValue());
+                    break;
+                case 0xb1:
+                    pc += 2;
+                    LDA(memory[indirectIndexedAddress()]);
+                    break;
+                case 0xb4:
+                    pc += 2;
+                    LDY(memory[zeroPagedIndexedXAddress()]);
+                    break;
+                case 0xb5:
+                    pc += 2;
+                    LDA(memory[zeroPagedIndexedXAddress()]);
+                    break;
+                case 0xb6:
+                    pc += 2;
+                    LDX(memory[zeroPagedIndexedYAddress()]);
+                    break;
+                case 0xb8:
+                    pc += 1;
+                    CLV();
+                    break;
+                case 0xb9:
+                    pc += 3;
+                    LDA(memory[absoluteIndexedY()]);
+                    break;
+                case 0xba:
+                    pc += 1;
+                    TSX();
+                    break;
+                case 0xbc:
+                    pc += 3;
+                    LDY(memory[absoluteIndexedX()]);
+                    break;
+                case 0xbd:
+                    pc += 3;
+                    LDA(memory[absoluteIndexedX()]);
+                    break;
+                case 0xbe:
+                    pc += 3;
+                    LDX(memory[absoluteIndexedY()]);
+                    break;
+
+                case 0xc0:
+                    pc += 2;
+                    CPY(immediateValue());
+                    break;
+                case 0xc1:
+                    pc += 2;
+                    CMP(memory[indirectAbsoluteAddress()]);
+                    break; 
+                case 0xc4:
+                    pc += 2;
+                    CPY(memory[zeroPagedAddress()]);
+                    break;
+                case 0xc5:
+                    pc += 2;
+                    CMP(memory[zeroPagedAddress()]);
+                    break;
+                case 0xc6:
+                    pc += 2;
+                    DEC(zeroPagedAddress());
+                    break;
+                case 0xc8:
+                    pc += 1;
+                    INY();
+                    break;
+                case 0xc9:
+                    pc += 2;
+                    CMP(immediateValue());
+                    break;
+                case 0xca:
+                    pc += 1;
+                    DEX();
+                    break;
+                case 0xcc:
+                    pc += 3;
+                    CPY(memory[absoluteAddress()]);
+                    break;
+                case 0xcd:
+                    pc += 3;
+                    CMP(memory[absoluteAddress()]);
+                    break;
+                case 0xce:
+                    pc += 3;
+                    DEC(absoluteAddress());
+                    break;
+                
+                case 0xd0:
+                    pc += 2;
+                    BNE(relativeValue());
+                    break;
+                case 0xd1:
+                    pc += 2;
+                    CMP(memory[indirectIndexedAddress()]);
+                    break;
+                case 0xd5:
+                    pc += 2;
+                    CMP(memory[zeroPagedIndexedXAddress()]);
+                    break;
+                case 0xd6:
+                    pc += 2;
+                    DEC(zeroPagedIndexedXAddress());
+                    break;
+                case 0xd8:
+                    pc += 1;
+                    CLD();
+                    break;
+                case 0xd9:
+                    pc += 3;
+                    CMP(memory[absoluteIndexedY()]);
+                    break;
+                case 0xdd:
+                    pc += 3;
+                    CMP(memory[absoluteIndexedX()]);
+                    break;
+                case 0xde:
+                    pc += 3;
+                    DEC(absoluteIndexedX());
+                    break;
+
+                case 0xe0:
+                    pc += 2;
+                    CPX(immediateValue());
+                    break;
+                case 0xe1:
+                    pc += 2;
+                    SBC(memory[indexedIndirectAddress()]);
+                    break;
+                case 0xe4:
+                    pc += 2;
+                    CPX(memory[zeroPagedAddress()]);
+                    break;
+                case 0xe5:
+                    pc += 2;
+                    SBC(memory[zeroPagedAddress()]);
+                    break;
+                case 0xe6:
+                    pc += 2;
+                    INC(zeroPagedAddress());
+                    break;
+                case 0xe8:
+                    pc += 1;
+                    INX();
+                    break;
+                case 0xe9:
+                    pc += 2;
+                    SBC(immediateValue());
+                    break;
+                case 0xea:
                     pc += 1;
                     NOP();
+                    break;
+                case 0xec:
+                    pc += 3;
+                    CPX(memory[absoluteAddress()]);
+                    break;
+                case 0xed:
+                    pc += 3;
+                    SBC(memory[absoluteAddress()]);
+                    break;
+                case 0xee:
+                    pc += 3;
+                    INC(absoluteAddress());
+                    break;
+
+                case 0xf0:
+                    pc += 2;
+                    BEQ(relativeValue());
+                    break;
+                case 0xf1:
+                    pc += 2;
+                    SBC(memory[indirectAbsoluteAddress()]);
+                    break;
+                case 0xf5:
+                    pc += 2;
+                    SBC(memory[zeroPagedIndexedXAddress()]);
+                    break;
+                case 0xf6:
+                    pc += 2;
+                    INC(zeroPagedIndexedXAddress());
+                    break;
+                case 0xf8:
+                    pc += 1;
+                    SED();
+                    break;
+                case 0xf9:
+                    pc += 3;
+                    SBC(memory[absoluteIndexedY()]);
+                    break;
+                case 0xfd:
+                    pc += 3;
+                    SBC(memory[absoluteIndexedX()]);
+                    break;
+                case 0xfe:
+                    pc += 3;
+                    INC(absoluteIndexedX());
                     break;
             }
         }
@@ -888,6 +1133,207 @@ class CPU {
 
         void TXS() {
             sp = x;
+        }
+
+        void LDY(uint8_t operand) {
+            y = operand;
+
+            if ((y & 0x80) > 0) setFlag(NEGATIVE_FLAG);
+            else unsetFlag(NEGATIVE_FLAG);
+
+            if (y == 0) setFlag(ZERO_FLAG);
+            else unsetFlag(ZERO_FLAG);
+        }
+
+        void LDA(uint8_t operand) {
+            accumulator = operand;
+
+            if ((accumulator & 0x80) > 0) setFlag(NEGATIVE_FLAG);
+            else unsetFlag(NEGATIVE_FLAG);
+
+            if (accumulator == 0) setFlag(ZERO_FLAG);
+            else unsetFlag(ZERO_FLAG);           
+        }
+
+        void LDX(uint8_t operand) {
+            x = operand;
+
+            if ((x & 0x80) > 0) setFlag(NEGATIVE_FLAG);
+            else unsetFlag(NEGATIVE_FLAG);
+
+            if (x == 0) setFlag(ZERO_FLAG);
+            else unsetFlag(ZERO_FLAG);
+        }
+
+        void TAY() {
+            y = accumulator;
+
+            if ((y & 0x80) > 0) setFlag(NEGATIVE_FLAG);
+            else unsetFlag(NEGATIVE_FLAG);
+
+            if (y == 0) setFlag(ZERO_FLAG);
+            else unsetFlag(ZERO_FLAG);
+        }
+
+        void TAX() {
+            x = accumulator;
+
+            if ((x & 0x80) > 0) setFlag(NEGATIVE_FLAG);
+            else unsetFlag(NEGATIVE_FLAG);
+
+            if (x == 0) setFlag(ZERO_FLAG);
+            else unsetFlag(ZERO_FLAG);
+        }
+
+        void BCS(uint8_t operand) {
+            if (checkFlag(CARRY_FLAG)) pc += (int8_t)operand;
+            else pc += 2;
+        }
+
+        void CLV() {
+            unsetFlag(OVERFLOW_FLAG);
+        }
+
+        void TSX() {
+            sp = x;
+        }
+
+        void CPY(uint8_t operand) {
+            if (y >= operand) setFlag(CARRY_FLAG);
+            else unsetFlag(CARRY_FLAG);
+
+            uint8_t temp = y - operand;
+
+            if ((temp & 0x80) > 0) setFlag(NEGATIVE_FLAG);
+            else unsetFlag(NEGATIVE_FLAG);
+
+            if (temp == 0) setFlag(ZERO_FLAG);
+            else unsetFlag(ZERO_FLAG);
+        }
+
+        void CMP(uint8_t operand) {
+            if (accumulator > operand) setFlag(CARRY_FLAG);
+            else unsetFlag(CARRY_FLAG);
+
+            uint8_t temp = accumulator - operand;
+
+            if ((temp & 0x80) > 0) setFlag(NEGATIVE_FLAG);
+            else unsetFlag(NEGATIVE_FLAG);
+
+            if (temp == 0) setFlag(ZERO_FLAG);
+            else unsetFlag(ZERO_FLAG);
+        }
+
+        void DEC(uint16_t operand) {
+            memory[operand]--;
+
+            if ((memory[operand] & 0x80) > 0) setFlag(NEGATIVE_FLAG);
+            else unsetFlag(NEGATIVE_FLAG);
+
+            if (memory[operand] == 0) setFlag(ZERO_FLAG);
+            else unsetFlag(ZERO_FLAG);
+        }
+
+        void INY() {
+            y++;
+
+            if ((y & 0x80) > 0) setFlag(NEGATIVE_FLAG);
+            else unsetFlag(NEGATIVE_FLAG);
+
+            if (y == 0) setFlag(ZERO_FLAG);
+            else unsetFlag(ZERO_FLAG);
+        }
+
+        void DEX() {
+            x--;
+
+            if ((x & 0x80) > 0) setFlag(NEGATIVE_FLAG);
+            else unsetFlag(NEGATIVE_FLAG);
+
+            if (x == 0) setFlag(ZERO_FLAG);
+            else unsetFlag(ZERO_FLAG);
+        }
+
+        void BNE(uint8_t operand) {
+            if (!checkFlag(ZERO_FLAG)) pc += (int8_t)operand;
+            else pc += 2;
+        }
+
+        void CLD() {
+            unsetFlag(DECIMAL_FLAG);
+        }
+
+        void CPX(uint8_t operand) {
+            if (x > operand) setFlag(CARRY_FLAG);
+            else unsetFlag(CARRY_FLAG);
+
+            uint8_t temp = x - operand;
+
+            if ((temp & 0x80) > 0) setFlag(NEGATIVE_FLAG);
+            else unsetFlag(NEGATIVE_FLAG);
+
+            if (temp == 0) setFlag(ZERO_FLAG);
+            else unsetFlag(ZERO_FLAG);
+        }
+
+        void SBC(uint8_t operand) {
+            uint8_t oldA = accumulator;
+            uint16_t value = operand ^ 0xFF;
+            uint16_t temp = (uint16_t)oldA + value + (checkFlag(CARRY_FLAG) ? 1 : 0);
+
+            bool overflow = ((oldA ^ temp) & (operand ^ temp) & 0x80) != 0;
+            if (overflow) setFlag(OVERFLOW_FLAG); else unsetFlag(OVERFLOW_FLAG);
+
+            if (checkFlag(DECIMAL_FLAG)) {
+                uint16_t correction = 0;
+
+                if (((oldA & 0x0F) + (value & 0x0F) + (checkFlag(CARRY_FLAG) ? 1 : 0)) > 0x09)
+                    correction += 0x06;
+                if ((temp > 0x99))
+                    correction += 0x60;
+
+                temp += correction;
+            }
+
+            if (temp & 0x100) setFlag(CARRY_FLAG);
+            else unsetFlag(CARRY_FLAG);
+
+            accumulator = (uint8_t)(temp & 0xFF);
+
+            if ((accumulator & 0x80) > 0) setFlag(NEGATIVE_FLAG); 
+            else unsetFlag(NEGATIVE_FLAG); 
+            
+            if (accumulator == 0) setFlag(ZERO_FLAG);
+            else unsetFlag(ZERO_FLAG);
+        }
+
+        void INC(uint16_t operand) {
+            memory[operand]++;
+
+            if ((memory[operand] & 0x80) > 0) setFlag(NEGATIVE_FLAG);
+            else unsetFlag(NEGATIVE_FLAG);
+
+            if (memory[operand] == 0) setFlag(ZERO_FLAG);
+            else unsetFlag(ZERO_FLAG);
+        }
+
+        void INX() {
+            x++;
+
+            if ((x & 0x80) > 0) setFlag(NEGATIVE_FLAG);
+            else unsetFlag(NEGATIVE_FLAG);
+
+            if (x == 0) setFlag(ZERO_FLAG);
+            else unsetFlag(ZERO_FLAG);
+        }
+
+        void BEQ(uint8_t operand) {
+            if (checkFlag(ZERO_FLAG)) pc += (int8_t)operand;
+            else pc += 2;
+        }
+
+        void SED() {
+            setFlag(DECIMAL_FLAG);
         }
 };
 
