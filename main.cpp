@@ -1,10 +1,14 @@
 #include <iostream>
 #include <cstdint>
+#include <fstream>
 
-// https://ru.wikipedia.org/wiki/Apple_II
-// https://ru.wikipedia.org/wiki/MOS_Technology_6502
-// https://www.masswerk.at/6502/6502_instruction_set.html
-// https://github.com/gianlucag/mos6502
+/* 
+Sources:
+    - https://ru.wikipedia.org/wiki/MOS_Technology_6502
+    - https://www.masswerk.at/6502/6502_instruction_set.html
+    - https://www.masswerk.at/6502/assembler.html
+*/
+
 
 uint8_t memory[0xffff];
 
@@ -24,7 +28,6 @@ enum {
     NMI = 0xfffb
 };
 
-// it's little-endian processor, remember it!
 class CPU {
     bool isIRQ = false;
     bool isNMI = false;
@@ -38,17 +41,6 @@ class CPU {
         uint8_t instr_reg = 0;
 
         uint16_t pc = 0;
-
-        CPU() { 
-            // memory[IRQ] = ...
-            // memory[IRQ-1] = ...
-
-            // memory[RESET] = 0x02; // high
-            // memory[RESET-1] = 0x00; // low   
-
-            // memory[NMI] = ...
-            // memory[NMI-1]
-        }
 
         void pushStack(uint8_t data) {
             memory[((uint16_t)0x01 << 8) | sp] = data;
@@ -76,7 +68,7 @@ class CPU {
         }
 
         void reset() {
-            pc = ((uint16_t)memory[RESET-1] << 8) | memory[RESET];
+            pc = ((uint16_t)memory[RESET] << 8) | memory[RESET-1];
         }
 
         uint16_t absoluteAddress() {
@@ -168,6 +160,7 @@ class CPU {
 
         void run() {
             reset();
+            std::cout << pc << std::endl;
             while (true) {
                 if (isIRQ && !checkFlag(INTERRUPT_FLAG)) {
                     executeIRQ();
@@ -177,615 +170,771 @@ class CPU {
                 
                 instr_reg = memory[pc];
 
-                decode();
+                if (!decode()) return;
             }
         }
 
-        void decode() {
+        bool decode() {
             switch (instr_reg) {
                 case 0x00:
+                    std::cout << "BRK" << std::endl;
                     BRK();
                     break;
                 case 0x01:
-                    pc += 2;
+                    std::cout << "ORA X, ind" << std::endl;
                     ORA(memory[indirectIndexedAddress()]);
+                    pc += 2;
                     break;
                 case 0x05:
-                    pc += 2;
+                    std::cout << "ORA zpg" << std::endl;
                     ORA(memory[zeroPagedAddress()]);
+                    pc += 2;
                     break;
                 case 0x06:
-                    pc += 2;
+                    std::cout << "ASL zpg" << std::endl;
                     ASL(memory[zeroPagedAddress()]);
+                    pc += 2;
                     break;
                 case 0x08:
-                    pc += 1;
+                    std::cout << "PHP" << std::endl;
                     PHP();
+                    pc += 1;
                     break;
                 case 0x09:
-                    pc += 2;
+                    std::cout << "ORA #" << std::endl;
                     ORA(immediateValue());
+                    pc += 2;
                     break;
                 case 0x0a:
-                    pc += 1;
+                    std::cout << "ASL A" << std::endl;
                     ASL();
+                    pc += 1;
                     break;
                 case 0x0d:
-                    pc += 3;
+                    std::cout << "ORA abs" << std::endl;
                     ORA(memory[absoluteAddress()]);
+                    pc += 3;
                     break;
                 case 0x0e:
-                    pc += 3;
+                    std::cout << "ASL abs" << std::endl;
                     ASL(absoluteAddress());
+                    pc += 3;
                     break;
 
                 case 0x10:
+                    std::cout << "BPL rel" << std::endl;
                     BPL(relativeValue());
                     break;
                 case 0x11:
-                    pc += 2;
+                    std::cout << "ORA ind, Y" << std::endl;
                     ORA(memory[indirectIndexedAddress()]);
+                    pc += 2;
                     break;
                 case 0x15:
-                    pc += 2;
+                    std::cout << "ORA zpg, X" << std::endl;
                     ORA(memory[zeroPagedIndexedXAddress()]);
+                    pc += 2;
                     break;
                 case 0x16:
-                    pc += 2;
+                    std::cout << "ASL zpg, X" << std::endl;
                     ASL(zeroPagedIndexedXAddress());
+                    pc += 2;
                     break;
                 case 0x18:
-                    pc += 1;
+                    std::cout << "CLC" << std::endl;
                     CLC();
+                    pc += 1;
                     break;
                 case 0x19:
-                    pc += 3;
+                    std::cout << "ORA abs, Y" << std::endl;
                     ORA(memory[absoluteIndexedY()]);
+                    pc += 3;
                     break;
                 case 0x1d:
-                    pc += 3;
+                    std::cout << "ORA abs, X" << std::endl;
                     ORA(memory[absoluteIndexedX()]);
+                    pc += 3;
                     break;
                 case 0x1e:
-                    pc += 3;
+                    std::cout << "ASL abs, X" << std::endl;
                     ASL(absoluteIndexedX());
+                    pc += 3;
                     break;
 
                 case 0x20:
+                    std::cout << "JSR abs" << std::endl;
                     JSR(absoluteAddress());
                     break;
                 case 0x21:
-                    pc += 2;
+                    std::cout << "AND X, ind" << std::endl;
                     AND(memory[indirectIndexedAddress()]);
+                    pc += 2;
                     break;
                 case 0x24:
-                    pc += 2;
+                    std::cout << "BIT zpg" << std::endl;
                     BIT(memory[zeroPagedAddress()]);
+                    pc += 2;
                     break;
                 case 0x25:
-                    pc += 2;
+                    std::cout << "AND zpg" << std::endl;
                     AND(memory[zeroPagedIndexedXAddress()]);
+                    pc += 2;
                     break;
                 case 0x26:
-                    pc += 2;
+                    std::cout << "ROL zpg" << std::endl;
                     ROL(zeroPagedAddress());
+                    pc += 2;
                     break;
                 case 0x28:
-                    pc += 1;
+                    std::cout << "PLP" << std::endl;
                     PLP();
+                    pc += 1;
                     break;
                 case 0x29:
-                    pc += 2;
+                    std::cout << "AND #" << std::endl;
                     AND(immediateValue());
+                    pc += 1;
                     break;
                 case 0x2a:
-                    pc += 1;
+                    std::cout << "ROL A" << std::endl;
                     ROL();
+                    pc += 1;
                     break;
                 case 0x2c:
-                    pc += 3;
+                    std::cout << "BIT abs" << std::endl;
                     BIT(memory[absoluteAddress()]);
+                    pc += 3;
                     break;
                 case 0x2d:
-                    pc += 3;
+                    std::cout << "AND abs" << std::endl;
                     AND(memory[absoluteAddress()]);
+                    pc += 3;
                     break;
                 case 0x2e:
-                    pc += 3;
+                    std::cout << "ROL abs" << std::endl;
                     ROL(absoluteAddress());
+                    pc += 3;
                     break;
 
                 case 0x30:
+                    std::cout << "BMI rel" << std::endl;
                     BMI(relativeValue());
                     break;
                 case 0x31:
-                    pc += 2;
+                    std::cout << "AND ind, Y" << std::endl;
                     AND(memory[indirectIndexedAddress()]);
+                    pc += 2;
                     break;
                 case 0x35:
-                    pc += 2;
+                    std::cout << "AND zpg, X" << std::endl;
                     AND(memory[zeroPagedIndexedXAddress()]);
+                    pc += 2;
                     break;
                 case 0x36:
-                    pc += 2;
+                    std::cout << "ROL zpg, X" << std::endl;
                     ROL(zeroPagedAddress());
+                    pc += 2;
                     break;
                 case 0x38:
-                    pc += 1;
+                    std::cout << "SEC" << std::endl;
                     SEC();
+                    pc += 1;
                     break;
                 case 0x39:
-                    pc += 3;
+                    std::cout << "AND abs, Y" << std::endl;
                     AND(memory[absoluteIndexedY()]);
+                    pc += 3;
                     break;
                 case 0x3d:
-                    pc += 3;
+                    std::cout << "AND abs, X" << std::endl;
                     AND(memory[absoluteIndexedX()]);
+                    pc += 3;
                     break;
                 case 0x3e:
-                    pc += 3;
+                    std::cout << "ROL abs, X" << std::endl;
                     ROL(memory[absoluteIndexedX()]);
+                    pc += 3;
                     break;
 
                 case 0x40:
+                    std::cout << "RTI" << std::endl;
                     RTI();
                     break;
                 case 0x41:
-                    pc += 2;
+                    std::cout << "EOR X, ind" << std::endl;
                     EOR(memory[indexedIndirectAddress()]);
+                    pc += 2;
                     break;
                 case 0x45:
-                    pc += 2;
+                    std::cout << "EOR zpg" << std::endl;
                     EOR(memory[zeroPagedAddress()]);
+                    pc += 2;
                     break;
                 case 0x46:
-                    pc += 2;
+                    std::cout << "LSR zpg" << std::endl;
                     LSR(zeroPagedAddress());
+                    pc += 2;
                     break;
                 case 0x48:
-                    pc += 1;
+                    std::cout << "PHA" << std::endl;
                     PHA();
+                    pc += 1;
                     break;
                 case 0x49:
-                    pc += 2;
+                    std::cout << "EOR #" << std::endl;
                     EOR(immediateValue());
+                    pc += 2;
                     break;
                 case 0x4a:
-                    pc += 1;
+                    std::cout << "LSR A" << std::endl;
                     LSR();
+                    pc += 1;
                     break;
                 case 0x4c:
+                    std::cout << "JMP abs" << std::endl;
                     JMP(absoluteAddress());
+                    pc += 3;
                     break;
                 case 0x4d:
-                    pc += 3;
+                    std::cout << "EOR abs" << std::endl;
                     EOR(memory[absoluteAddress()]);
+                    pc += 3;
                     break;
                 case 0x4e:
-                    pc += 3;
+                    std::cout << "LSR abs" << std::endl;
                     LSR(absoluteAddress());
+                    pc += 3;
                     break;
                 
                 case 0x50:
+                    std::cout << "BVC rel" << std::endl;
                     BVC(relativeValue());
                     break;
                 case 0x51:
-                    pc += 2;
+                    std::cout << "EOR ind, Y" << std::endl;
                     EOR(memory[indirectIndexedAddress()]);
+                    pc += 2;
                     break;
                 case 0x55:
-                    pc += 2;
+                    std::cout << "EOR zpg, X" << std::endl;
                     EOR(memory[zeroPagedIndexedXAddress()]);
+                    pc += 2;
                     break;
                 case 0x56:
-                    pc += 2;
+                    std::cout << "LSR zpg, X" << std::endl;
                     LSR(zeroPagedIndexedXAddress());
+                    pc += 2;
                     break;
                 case 0x58:
-                    pc += 1;
+                    std::cout << "CLI" << std::endl;
                     CLI();
+                    pc += 1;
                     break;
                 case 0x59:
-                    pc += 3;
+                    std::cout << "EOR abs, Y" << std::endl;
                     EOR(memory[absoluteIndexedY()]);
+                    pc += 3;
                     break;
                 case 0x5d:
-                    pc += 3;
+                    std::cout << "EOR abs, X" << std::endl;
                     EOR(memory[absoluteIndexedX()]);
+                    pc += 3;
                     break;
                 case 0x5e:
-                    pc += 3;
+                    std::cout << "LSR abs, X" << std::endl;
                     LSR(absoluteIndexedX());
+                    pc += 3;
                     break;
                 
                 case 0x60:
+                    std::cout << "RTS" << std::endl;
                     RTS();
                     break;
                 case 0x61:
-                    pc += 2;
+                    std::cout << "ADC X, ind" << std::endl;
                     ADC(memory[indexedIndirectAddress()]);
+                    pc += 2;
                     break;
                 case 0x65:
-                    pc += 2;
+                    std::cout << "ADC zpg" << std::endl;
                     ADC(memory[zeroPagedAddress()]);
+                    pc += 2;
                     break;
                 case 0x66:
-                    pc += 2;
+                    std::cout << "ROR zpg" << std::endl;
                     ROR(zeroPagedAddress());
+                    pc += 2;
                     break;
                 case 0x68:
-                    pc +=2;
+                    std::cout << "PLA" << std::endl;
                     PLA();
+                    pc += 2;
                     break;
                 case 0x69:
-                    pc += 2;
+                    std::cout << "ADC #" << std::endl;
                     ADC(immediateValue());
+                    pc += 2;
                     break;
                 case 0x6a:
-                    pc += 2;
+                    std::cout << "ROR A" << std::endl;
                     ROR();
+                    pc += 2;
                     break;
                 case 0x6c:
+                    std::cout << "JMP ind" << std::endl;
                     JMP(indirectAbsoluteAddress());
                     break;
                 case 0x6d:
-                    pc += 3;
+                    std::cout << "ADC abs" << std::endl;
                     ADC(memory[absoluteAddress()]);
+                    pc += 3;
                     break;
                 case 0x6e:
-                    pc += 3;
+                    std::cout << "ROR abs" << std::endl;
                     ROR(absoluteAddress());
+                    pc += 3;
                     break;
                 
                 case 0x70:
-                    pc += 2;
+                    std::cout << "BVS rel" << std::endl;
                     BVS(relativeValue());
+                    pc += 2;
                     break;
                 case 0x71:
-                    pc += 2;
+                    std::cout << "ADC ind, Y" << std::endl;
                     ADC(memory[indirectIndexedAddress()]);
+                    pc += 2;
                     break;                
                 case 0x75:
-                    pc += 2;
+                    std::cout << "ADC zpg, X" << std::endl;
                     ADC(memory[zeroPagedIndexedXAddress()]);
+                    pc += 2;
                     break;
                 case 0x76:
-                    pc += 2;
+                    std::cout << "ROR zpg, X" << std::endl;
                     ROR(zeroPagedIndexedXAddress());
+                    pc += 2;
                     break;
                 case 0x7d:
-                    pc += 3;
+                    std::cout << "ADC abs, X" << std::endl;
                     ADC(memory[absoluteIndexedX()]);
+                    pc += 3;
                     break;
                 case 0x7e:
-                    pc += 3;
+                    std::cout << "ROR abs, X" << std::endl;
                     ROR(memory[absoluteIndexedX()]);
+                    pc += 3;
                     break;
 
                 case 0x81:
-                    pc += 2;
+                    std::cout << "STA X, ind" << std::endl;
                     STA(indexedIndirectAddress());
+                    pc += 2;
                     break;
                 case 0x84:
-                    pc += 2;
+                    std::cout << "STY zpg" << std::endl;
                     STY(zeroPagedAddress());
+                    pc += 2;
                     break;
                 case 0x85:
-                    pc += 2;
+                    std::cout << "STA zpg" << std::endl;
                     STA(zeroPagedAddress());
+                    pc += 2;
                     break;
                 case 0x86:
-                    pc += 2;
+                    std::cout << "STX, zpg" << std::endl;
                     STX(zeroPagedAddress());
+                    pc += 2;
                     break;
                 case 0x88:
-                    pc += 1;
+                    std::cout << "DEY" << std::endl;
                     DEY();
+                    pc += 1;
                     break;
                 case 0x8a:
-                    pc += 1;
+                    std::cout << "TXA" << std::endl;
                     TXA();
+                    pc += 1;
                     break;
                 case 0x8c:
-                    pc += 3;
+                    std::cout << "STY abs" << std::endl;
                     STY(absoluteAddress());
+                    pc += 3;
                     break;
                 case 0x8d:
-                    pc += 3;
+                    std::cout << "STA abs" << std::endl;
                     STA(absoluteAddress());
+                    pc += 3;
                     break;
                 case 0x8e:
-                    pc += 3;
+                    std::cout << "STX abs" << std::endl;
                     STX(absoluteAddress());
+                    pc += 3;
                     break;
 
                 case 0x90:
-                    pc += 2;
+                    std::cout << "BCC rel" << std::endl;
                     BCC(relativeValue());
+                    pc += 2;
                     break;
                 case 0x91:
-                    pc += 2;
+                    std::cout << "STA X, ind" << std::endl;
                     STA(indexedIndirectAddress());
+                    pc += 2;
                     break;
                 case 0x94:
-                    pc += 2;
+                    std::cout << "STY zpg, X" << std::endl;
                     STY(zeroPagedIndexedXAddress());
+                    pc += 2;
                     break;
                 case 0x95:
-                    pc += 2;
+                    std::cout << "STA zpg, X" << std::endl;
                     STA(zeroPagedIndexedXAddress());
+                    pc += 2;
                     break;
                 case 0x96:
-                    pc += 2;
+                    std::cout << "STX zpg, Y" << std::endl;
                     STX(zeroPagedIndexedYAddress());
+                    pc += 2;
                     break;
                 case 0x98:
-                    pc += 1;
+                    std::cout << "TYA" << std::endl;
                     TYA();
+                    pc += 1;
                     break;
                 case 0x99:
-                    pc += 3;
+                    std::cout << "STA abs, Y" << std::endl;
                     STA(absoluteIndexedY());
+                    pc += 3;
                     break;
                 case 0x9a:
-                    pc += 1;
+                    std::cout << "TXS" << std::endl;
                     TXS();
+                    pc += 1;
                     break;
                 case 0x9d:
-                    pc += 3;
+                    std::cout << "STA abs, X" << std::endl;
                     STA(absoluteIndexedX());
+                    pc += 3;
                     break;
                 
                 case 0xa0:
-                    pc += 2;
+                    std::cout << "LDY #" << std::endl;
                     LDY(immediateValue());
+                    pc += 2;
                     break;
                 case 0xa1:
-                    pc += 2;
+                    std::cout << "LDA X, ind" << std::endl;
                     LDA(memory[indexedIndirectAddress()]);
+                    pc += 2;
                     break;
                 case 0xa2:
-                    pc += 2;
+                    std::cout << "LDX #" << std::endl;
                     LDX(immediateValue());
+                    pc += 2;
                     break;
                 case 0xa4:
-                    pc += 2;
+                    std::cout << "LDY zpg" << std::endl;
                     LDY(memory[zeroPagedAddress()]);
+                    pc += 2;
                     break;
                 case 0xa5:
-                    pc += 2;
+                    std::cout << "LDA zpg" << std::endl;
                     LDA(memory[zeroPagedAddress()]);
+                    pc += 2;
                     break;
                 case 0xa6:
-                    pc += 2;
+                    std::cout << "LDX zpg" << std::endl;
                     LDX(memory[zeroPagedAddress()]);
+                    pc += 2;
                     break;
                 case 0xa8:
-                    pc += 1;
+                    std::cout << "TAY" << std::endl;
                     TAY();
+                    pc += 1;
                     break;
                 case 0xa9:
-                    pc += 2;
+                    std::cout << "LDA #" << std::endl;
                     LDA(immediateValue());
+                    pc += 2;
                     break;
                 case 0xaa:
-                    pc += 1;
+                    std::cout << "TAX" << std::endl;
                     TAX();
+                    pc += 1;
                     break;
                 case 0xac:
-                    pc += 3;
+                    std::cout << "LDY abs" << std::endl;
                     LDY(memory[absoluteAddress()]);
+                    pc += 3;
                     break;
                 case 0xad:
-                    pc += 3;
+                    std::cout << "LDA abs" << std::endl;
                     LDA(memory[absoluteAddress()]);
+                    pc += 3;
                     break;
                 case 0xae:
-                    pc += 3;
+                    std::cout << "LDX abs" << std::endl;
                     LDX(memory[absoluteAddress()]);
+                    pc += 3;
                     break;
 
                 case 0xb0:
-                    pc += 2;
+                    std::cout << "BCS rel" << std::endl;
                     BCS(relativeValue());
+                    pc += 2;
                     break;
                 case 0xb1:
-                    pc += 2;
+                    std::cout << "LDA ind, Y" << std::endl;
                     LDA(memory[indirectIndexedAddress()]);
+                    pc += 2;
                     break;
                 case 0xb4:
-                    pc += 2;
+                    std::cout << "LDY zpg, X" << std::endl;
                     LDY(memory[zeroPagedIndexedXAddress()]);
+                    pc += 2;
                     break;
                 case 0xb5:
-                    pc += 2;
+                    std::cout << "LDA zpg, X" << std::endl;
                     LDA(memory[zeroPagedIndexedXAddress()]);
+                    pc += 2;
                     break;
                 case 0xb6:
-                    pc += 2;
+                    std::cout << "LDX zpg, X" << std::endl;
                     LDX(memory[zeroPagedIndexedYAddress()]);
+                    pc += 2;
                     break;
                 case 0xb8:
-                    pc += 1;
+                    std::cout << "CLV" << std::endl;
                     CLV();
+                    pc += 1;
                     break;
                 case 0xb9:
-                    pc += 3;
+                    std::cout << "LDA abs, Y" << std::endl;
                     LDA(memory[absoluteIndexedY()]);
+                    pc += 3;
                     break;
                 case 0xba:
-                    pc += 1;
+                    std::cout << "TSX" << std::endl;
                     TSX();
+                    pc += 1;
                     break;
                 case 0xbc:
-                    pc += 3;
+                    std::cout << "LDY abs, X" << std::endl;
                     LDY(memory[absoluteIndexedX()]);
-                    break;
-                case 0xbd:
                     pc += 3;
+                    break;
+                case 0xbd:  
+                    std::cout << "abs, X" << std::endl;
                     LDA(memory[absoluteIndexedX()]);
+                    pc += 3;
                     break;
                 case 0xbe:
-                    pc += 3;
+                    std::cout << "LDX, abs Y" << std::endl;
                     LDX(memory[absoluteIndexedY()]);
+                    pc += 3;
                     break;
 
                 case 0xc0:
-                    pc += 2;
+                    std::cout << "CPU #" << std::endl;
                     CPY(immediateValue());
+                    pc += 2;
                     break;
                 case 0xc1:
+                    std::cout << "CMP X, ind" << std::endl;
+                    CMP(memory[indexedIndirectAddress()]);
                     pc += 2;
-                    CMP(memory[indirectAbsoluteAddress()]);
                     break; 
                 case 0xc4:
-                    pc += 2;
+                    std::cout << "CPY zpg" << std::endl;
                     CPY(memory[zeroPagedAddress()]);
+                    pc += 2;
                     break;
                 case 0xc5:
-                    pc += 2;
+                    std::cout << "CMP zpg" << std::endl;
                     CMP(memory[zeroPagedAddress()]);
+                    pc += 2;
                     break;
                 case 0xc6:
-                    pc += 2;
+                    std::cout << "DEC zpg" << std::endl;
                     DEC(zeroPagedAddress());
+                    pc += 2;
                     break;
-                case 0xc8:
-                    pc += 1;
+                case 0xc8:  
+                    std::cout << "INY" << std::endl;
                     INY();
+                    pc += 1;
                     break;
                 case 0xc9:
-                    pc += 2;
+                    std::cout << "CMP #" << std::endl;
                     CMP(immediateValue());
+                    pc += 2;
                     break;
                 case 0xca:
-                    pc += 1;
+                    std::cout << "DEX" << std::endl;
                     DEX();
+                    pc += 1;
                     break;
                 case 0xcc:
-                    pc += 3;
+                    std::cout << "CPY abs" << std::endl;
                     CPY(memory[absoluteAddress()]);
-                    break;
-                case 0xcd:
                     pc += 3;
+                    break;
+                case 0xcd:  
+                    std::cout << "CMP abs" << std::endl;
                     CMP(memory[absoluteAddress()]);
+                    pc += 3;
                     break;
                 case 0xce:
-                    pc += 3;
+                    std::cout << "DEC abs" << std::endl;
                     DEC(absoluteAddress());
+                    pc += 3;
                     break;
                 
                 case 0xd0:
-                    pc += 2;
+                    std::cout << "BNE rel" << std::endl;
                     BNE(relativeValue());
+                    pc += 2;
                     break;
                 case 0xd1:
-                    pc += 2;
+                    std::cout << "CMP ind, Y" << std::endl;
                     CMP(memory[indirectIndexedAddress()]);
+                    pc += 2;
                     break;
                 case 0xd5:
-                    pc += 2;
+                    std::cout << "CMP zpg, X" << std::endl;
                     CMP(memory[zeroPagedIndexedXAddress()]);
+                    pc += 2;
                     break;
                 case 0xd6:
-                    pc += 2;
+                    std::cout << "DEC zpg, X" << std::endl;
                     DEC(zeroPagedIndexedXAddress());
+                    pc += 2;
                     break;
                 case 0xd8:
-                    pc += 1;
+                    std::cout << "CLD" << std::endl;
                     CLD();
+                    pc += 1;
                     break;
-                case 0xd9:
-                    pc += 3;
+                case 0xd9:  
+                    std::cout << "CMP abs, Y" << std::endl;
                     CMP(memory[absoluteIndexedY()]);
+                    pc += 3;
                     break;
                 case 0xdd:
-                    pc += 3;
+                    std::cout << "CMP abs, X" << std::endl;
                     CMP(memory[absoluteIndexedX()]);
+                    pc += 3;
                     break;
                 case 0xde:
-                    pc += 3;
+                    std::cout << "DEC abs, X" << std::endl;
                     DEC(absoluteIndexedX());
+                    pc += 3;
                     break;
 
                 case 0xe0:
-                    pc += 2;
+                    std::cout << "CPX #" << std::endl;
                     CPX(immediateValue());
+                    pc += 2;
                     break;
                 case 0xe1:
-                    pc += 2;
+                    std::cout << "SBC X, ind" << std::endl;
                     SBC(memory[indexedIndirectAddress()]);
+                    pc += 2;
                     break;
                 case 0xe4:
-                    pc += 2;
+                    std::cout << "CPX zpg" << std::endl;
                     CPX(memory[zeroPagedAddress()]);
+                    pc += 2;
                     break;
                 case 0xe5:
-                    pc += 2;
+                    std::cout << "SBC zpg" << std::endl;
                     SBC(memory[zeroPagedAddress()]);
+                    pc += 2;
                     break;
                 case 0xe6:
-                    pc += 2;
+                    std::cout << "INC zpg" << std::endl;
                     INC(zeroPagedAddress());
+                    pc += 2;
                     break;
                 case 0xe8:
-                    pc += 1;
+                    std::cout << "INX" << std::endl;
                     INX();
+                    pc += 1;
                     break;
                 case 0xe9:
-                    pc += 2;
+                    std::cout << "SBC #" << std::endl;
                     SBC(immediateValue());
+                    pc += 2;
                     break;
                 case 0xea:
-                    pc += 1;
+                    std::cout << "NOP" << std::endl;
                     NOP();
+                    pc += 1;
                     break;
                 case 0xec:
-                    pc += 3;
+                    std::cout << "CPX abs" << std::endl;
                     CPX(memory[absoluteAddress()]);
+                    pc += 3;
                     break;
                 case 0xed:
-                    pc += 3;
+                    std::cout << "SBC abs" << std::endl;
                     SBC(memory[absoluteAddress()]);
+                    pc += 3;
                     break;
                 case 0xee:
-                    pc += 3;
+                    std::cout << "INC abs" << std::endl;
                     INC(absoluteAddress());
+                    pc += 3;
                     break;
 
-                case 0xf0:
-                    pc += 2;
+                case 0xf0:  
+                    std::cout << "BEQ rel" << std::endl;
                     BEQ(relativeValue());
-                    break;
-                case 0xf1:
                     pc += 2;
-                    SBC(memory[indirectAbsoluteAddress()]);
+                    break;
+                case 0xf1:  
+                    std::cout << "SBC ind, Y" << std::endl;
+                    SBC(memory[indirectIndexedAddress()]);
+                    pc += 2;
                     break;
                 case 0xf5:
-                    pc += 2;
+                    std::cout << "EOR zpg, X" << std::endl;
                     SBC(memory[zeroPagedIndexedXAddress()]);
+                    pc += 2;
                     break;
                 case 0xf6:
-                    pc += 2;
+                    std::cout << "INC zpg, X" << std::endl;
                     INC(zeroPagedIndexedXAddress());
+                    pc += 2;
                     break;
-                case 0xf8:
-                    pc += 1;
+                case 0xf8:  
+                    std::cout << "SED" << std::endl;
                     SED();
+                    pc += 1;
                     break;
                 case 0xf9:
-                    pc += 3;
+                    std::cout << "SBC abs, Y" << std::endl;
                     SBC(memory[absoluteIndexedY()]);
+                    pc += 3;
                     break;
                 case 0xfd:
-                    pc += 3;
+                    std::cout << "SBC abs, X" << std::endl;
                     SBC(memory[absoluteIndexedX()]);
+                    pc += 3;
                     break;
                 case 0xfe:
-                    pc += 3;
+                    std::cout << "INC abs, X" << std::endl;
                     INC(absoluteIndexedX());
+                    pc += 3;
                     break;
+
+                default:
+                    std::cout << "Unknown opcode! (" << (uint16_t)instr_reg << ")" << std::endl;
+                    return false;
+                    
             }
+            return true;
         }
         
         // instructions
@@ -1338,5 +1487,21 @@ class CPU {
 };
 
 int main() {
+    FILE* f = fopen("roms/b.bin", "rb");
+    fseek(f, 0, SEEK_END);
+    const int size = ftell(f);
+    fseek(f, 0, SEEK_SET);
+    uint8_t* buffer = new uint8_t[size];
+    fread(buffer, size, 1, f);
+    for (int i = 0; i < size; i++) {
+        memory[i] = buffer[i];
+    }
+    fclose(f);
+    delete[] buffer;
+
+    CPU a;
+
+    a.run();
+
     return 0;
 }
