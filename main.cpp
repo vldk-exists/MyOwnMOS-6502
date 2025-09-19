@@ -1052,7 +1052,7 @@ class CPU {
             accumulator |= operand;
 
             // Negative flag
-            if (accumulator & 0x80 > 0) setFlag(NEGATIVE_FLAG);
+            if ((accumulator & 0x80) > 0) setFlag(NEGATIVE_FLAG);
             else unsetFlag(NEGATIVE_FLAG);
 
             // Zero flag    
