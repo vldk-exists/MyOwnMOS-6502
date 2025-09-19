@@ -243,7 +243,7 @@ class CPU {
         }
 
         void setFlag(uint8_t flag) {
-            psr |= flag;
+            psr &= flag;
         }
 
         void unsetFlag(uint8_t flag) {
